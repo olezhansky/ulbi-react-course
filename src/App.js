@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import PostList from "./components/PostList";
 import PostForm from "./components/UI/PostForm";
 import MySelect from "./components/UI/select/MySelect";
@@ -7,32 +7,26 @@ import "./styles/App.css";
 import PostFilter from "./components/PostFilter";
 import MyModal from "./components/UI/MyModal/MyModal";
 import MyButton from "./components/UI/button/MyButton";
+import { usePosts } from "./hooks/usePosts";
+import axios from "axios";
+import PostsService from "./api/PostService";
+import Loader from "./components/UI/Loader/Loader";
+import { useFetching } from "./hooks/useFetching";
 
 function App() {
-  const [posts, setPosts] = useState([
-    { id: 1, title: "vwefqw", body: "e" },
-    { id: 2, title: "sadad", body: "w" },
-    { id: 3, title: "qwewq", body: "q" },
-  ]);
-
+  const [posts, setPosts] = useState([]);
   const [modal, setModal] = useState(false);
-
   const [filter, setFilter] = useState({ sort: "", query: "" });
+  const sortedAndSearhedPosts = usePosts(posts, filter.sort, filter.query);
 
-  const sortedPosts = useMemo(() => {
-    if (filter.sort) {
-      return [...posts].sort((a, b) => {
-        return a[filter.sort].localeCompare(b[filter.sort]);
-      });
-    }
-    return posts;
-  }, [filter.sort, posts]);
+  const [fetchPosts, isPostsLoading, postError] = useFetching(async () => {
+    const posts = await PostsService.getAll();
+    setPosts(posts);
+  });
 
-  const sortedAndSearhedPosts = useMemo(() => {
-    return sortedPosts.filter((post) =>
-      post.title.toLowerCase().includes(filter.query)
-    );
-  }, [filter.query, sortedPosts]);
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
@@ -45,6 +39,7 @@ function App() {
 
   return (
     <div className="App">
+      <button onClick={fetchPosts}>GET POSTS</button>
       <MyButton style={{ marginTop: "30px" }} onClick={() => setModal(true)}>
         Create post
       </MyButton>
@@ -53,11 +48,24 @@ function App() {
       </MyModal>
       <hr style={{ margin: "15px 0" }} />
       <PostFilter setFilter={setFilter} filter={filter} />
-      <PostList
-        remove={removePost}
-        posts={sortedAndSearhedPosts}
-        title="Posts list about JS"
-      />
+      {postError && <h1>Error is happened {postError}</h1>}
+      {isPostsLoading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "50px",
+          }}
+        >
+          <Loader />
+        </div>
+      ) : (
+        <PostList
+          remove={removePost}
+          posts={sortedAndSearhedPosts}
+          title="Posts list about JS"
+        />
+      )}
     </div>
   );
 }
