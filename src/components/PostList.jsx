@@ -6,7 +6,6 @@ const PostList = ({posts, title, remove}) => {
     if (!posts.length) {
         return <h1 style={{ textAlign: "center" }}>Posts not found</h1>
     }
-    console.log(posts);
     return (
         <div>
             <h1 style={{textAlign: 'center'}}>{title}</h1>
@@ -17,7 +16,7 @@ const PostList = ({posts, title, remove}) => {
                         timeout={500}
                         classNames="post"
                     >
-                        <PostItem number={post.id} post={post} remove={remove}/>
+                        <PostItem key={post.id} number={post.id} post={post} remove={remove}/>
                     </CSSTransition>
                 ))}
             </TransitionGroup>

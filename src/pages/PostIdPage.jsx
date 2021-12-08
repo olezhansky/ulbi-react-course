@@ -29,12 +29,17 @@ const PostIdpage = () => {
             <h1>Page id post {params.id}</h1>
             {isLoading ? <Loader /> : <div>{post.id} {post.title}</div>}
             <h1>Comments</h1>
-            {isComLoading ? <Loader /> : (<div>{comments?.map((comment) => {
-                return <div style={{marginTop: '15px'}}>
-                    <h5>{comment.email}</h5>
-                    <h5>{comment.body}</h5>
+            {isComLoading ? <Loader /> : (
+                <div>{comments?.map((comment) => {
+                    return (
+                        <div style={{marginTop: '15px'}} key={comment.id}>
+                            <h5>{comment.email}</h5>
+                            <h5>{comment.body}</h5>
+                        </div>
+                        )
+                    })}
                 </div>
-            })}</div>)}
+            )}
         </div>
     )
 }

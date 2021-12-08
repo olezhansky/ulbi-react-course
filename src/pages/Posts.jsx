@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PostList from "../components/PostList";
 import PostForm from "../components/UI/PostForm";
 import PostFilter from "../components/PostFilter";
@@ -20,6 +20,8 @@ const Posts = () => {
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const sortedAndSearhedPosts = usePosts(posts, filter.sort, filter.query);
+  const lastElement = useRef();
+  const observer = useRef();
 
   const [fetchPosts, isPostsLoading, postError] = useFetching(
     async (limit, page) => {
@@ -31,8 +33,23 @@ const Posts = () => {
   );
 
   useEffect(() => {
+    if (isPostsLoading) return;
+    if (observer.current) observer.current.disconnect();
+
+    var callback = function(entries, observer) {
+      if (entries[0].isIntersecting && page < totalPages) {
+        console.log(page);
+        setPage(page + 1)   
+      }
+    }
+
+    observer.current = new IntersectionObserver(callback)
+    observer.current.observe(lastElement.current)
+  }, [isPostsLoading])
+
+  useEffect(() => {
     fetchPosts(limit, page);
-  }, []);
+  }, [page]);
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
@@ -45,7 +62,6 @@ const Posts = () => {
 
   const changePage = (page) => {
     setPage(page);
-    fetchPosts(limit, page);
   };
 
   return (
@@ -60,7 +76,7 @@ const Posts = () => {
       <hr style={{ margin: "15px 0" }} />
       <PostFilter setFilter={setFilter} filter={filter} />
       {postError && <h1>Error is happened {postError}</h1>}
-      {isPostsLoading ? (
+      {isPostsLoading && (
         <div
           style={{
             display: "flex",
@@ -70,13 +86,14 @@ const Posts = () => {
         >
           <Loader />
         </div>
-      ) : (
-        <PostList
-          remove={removePost}
-          posts={sortedAndSearhedPosts}
-          title="Posts list about JS"
-        />
-      )}
+        )  
+      }
+      <PostList
+        remove={removePost}
+        posts={sortedAndSearhedPosts}
+        title="Posts list about JS"
+      />
+      <div ref={lastElement} style={{height: '20px', background: 'red'}}/>
       <Pagination page={page} changePage={changePage} totalPages={totalPages} />
     </div>
   );

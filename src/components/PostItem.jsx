@@ -7,7 +7,6 @@ const PostItem = ({post, number, remove}) => {
 
   const router = useNavigate()
 
-  console.log(router);
     return (
         <div className="post">
           <div className="post__content">
